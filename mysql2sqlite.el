@@ -42,14 +42,14 @@ Several files will be generated:
          (dumpfile (mysql2sqlite-get-mysqldump directory keep-inserts)))
     (when dumpfile
       (find-file dumpfile)
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (mysql2sqlite-cleanup-buffer)
       (mysql2sqlite-remove-comments)
       
       ;; add blank line at the top to keep search-forward from infinite loop
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (newline)
-      (beginning-of-buffer)
+      (goto-char (point-min))
 
       (mysql2sqlite-convert-primary-keys)
       (mysql2sqlite-convert-constraints)
@@ -108,7 +108,7 @@ sqlite database."
 (defun mysql2sqlite-remove-comments ()
   "This function removes comments."
     (save-excursion
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (delete-matching-lines "^--")
       (delete-matching-lines "^/\\*!")
       (while (search-forward "comment '" nil t)
@@ -138,7 +138,7 @@ CREATE TABLE \"animalSpecies\" (
   CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\") REFERENCES \"animalGenus\" (\"pk
 \") ON DELETE NO ACTION ON UPDATE NO ACTION);"
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (let (bounds key)
       (while (setq bounds (mysql2sqlite-next-table-definition))
         (let ((beg (car bounds))
@@ -155,7 +155,7 @@ CREATE TABLE \"animalSpecies\" (
             (forward-char)
             (kill-line)
             (insert " INTEGER PRIMARY KEY,")))))
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (while (search-forward "auto_increment" nil t)
       (replace-match "PRIMARY KEY AUTOINCREMENT" nil t))))
 
@@ -184,7 +184,7 @@ This should be the equivalent of:
 grep -v ' KEY \"'
 "
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (delete-matching-lines " KEY \"")))
 
 (defun mysql2sqlite-convert-types ()
@@ -207,14 +207,14 @@ sed 's/ enum([^)]*) / varchar(255) /g'
                    (" character set [^ ]* " . " ")
                    (" enum([^)]*) " . " VARCHAR(255) "))))
       (dolist (type types)
-        (beginning-of-buffer)
+        (goto-char (point-min))
         (while (re-search-forward (car type) nil t)
           (replace-match (cdr type) nil nil))))))
 
 (defun mysql2sqlite-convert-constraints ()
   "This function coverts constraints."
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (let (bounds)
       (while (setq bounds (mysql2sqlite-next-table-definition))
         (let ((beg (car bounds))
@@ -254,7 +254,7 @@ This should be the equivalent of:
 sed '/^SET/d'
 "
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (delete-matching-lines "^SET")))
 
 (defun mysql2sqlite-convert-newlines ()
@@ -265,7 +265,7 @@ This should be the equivalent of:
 sed 's/\\r\\n/\\n/g'
 "
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (while (re-search-forward "\\\\r\\\\n" nil t)
       (replace-match "\\\\n" nil nil))))
 
@@ -277,7 +277,7 @@ This should be the equivalent of:
 sed 's/\\\"/\"/g'
 "
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (while (re-search-forward "\\\\\"" nil t)
       (replace-match "\"" nil nil))))
 
@@ -289,7 +289,7 @@ This should be the equivalent of:
 s/,\\n\\)/\\n\\)/gs
 "
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (while (re-search-forward ",\n)" nil t)
       (replace-match "
 )"))))
@@ -302,10 +302,10 @@ This should be the equivalent of:
 print \"begin;\n\";print;print \"commit\n\";
 "
   (save-excursion 
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (insert "begin;")
     (newline)
-    (end-of-buffer)
+    (goto-char (point-max))
     (newline)
     (insert "commit;")
     (newline)))
@@ -324,7 +324,7 @@ if (/^(INSERT.+?)\(/) {
 }
 "
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (while (re-search-forward "^INSERT" nil t)
       (search-forward "(")
       (backward-char)
@@ -339,18 +339,18 @@ if (/^(INSERT.+?)\(/) {
         (while (re-search-forward "\),\(" nil t)
           (replace-match (concat ")
  " statement "(")))
-      (next-line)))))
+      (forward-line)))))
 
 (defun mysql2sqlite-move-inserts-to-end ()
   "This function moves all insert statements to the end of the script."
   (save-excursion
     (let ((end (buffer-end 1)))
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (while (re-search-forward "^INSERT" end t)
         (beginning-of-line)
         (save-excursion
           (kill-line)
-          (end-of-buffer)
+          (goto-char (point-max))
           (newline)
           (yank)
           (newline))))))
@@ -378,7 +378,7 @@ mysql2sqlite-get-table-defiition-bounds for it."
               (end-of-line)
               (mysql2sqlite-next-table-definition))
           (mysql2sqlite-get-table-definition-bounds))
-      (end-of-buffer)
+      (goto-char (point-max))
       nil)))
     
 (provide 'mysql2sqlite)
