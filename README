@@ -1,0 +1,18 @@
+mysql2sqlite is an emacs package for converting a mysql database into an sqlite
+database.
+
+There are some customizable options:
+
+mysql2sqlite-sqlite-executable    - The sqlite executable to run.
+mysql2sqlite-mysqldump-executable - The mysqldump executable to run.
+mysql2sqlite-mysqldump-host       - The default host to connect to with mysqldump.
+mysql2sqlite-mysqldump-user       - The default user to use to connect to mysqldump.
+mysql2sqlite-mysqldump-database   - The default database to convert
+
+Usage is as simple as running M-x mysql2sqlite. You will be prompted for the
+necessary values, with the customized defaults as default values. Running the
+function will result in several files in the target directory:
+
+<output-file>.sql - The actual SQL file generated via mysqldump.
+<output-file>.db  - The generated sqlite database.
+<output-file>.err - The output of the conversion process.
