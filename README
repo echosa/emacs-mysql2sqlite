@@ -16,3 +16,6 @@ function will result in several files in the target directory:
 <output-file>.sql - The actual SQL file generated via mysqldump.
 <output-file>.db  - The generated sqlite database.
 <output-file>.err - The output of the conversion process.
+
+mysql2sqlite is written and maintained by Brian Zwahr <echosa@gmail.com>
+
