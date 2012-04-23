@@ -1,3 +1,30 @@
+;;; mysql2sqlite.el - Convert mysql databases into sqlite databases.
+
+;;; Commentary:
+
+;; mysql2sqlite is an emacs package for converting a mysql database into an sqlite
+;; database.
+
+;; There are some customizable options:
+
+;; mysql2sqlite-sqlite-executable    - The sqlite executable to run.
+;; mysql2sqlite-mysqldump-executable - The mysqldump executable to run.
+;; mysql2sqlite-mysqldump-host       - The default host to connect to with mysqldump.
+;; mysql2sqlite-mysqldump-user       - The default user to use to connect to mysqldump.
+;; mysql2sqlite-mysqldump-database   - The default database to convert
+
+;; Usage is as simple as running M-x mysql2sqlite. You will be prompted for the
+;; necessary values, with the customized defaults as default values. Running the
+;; function will result in several files in the target directory:
+
+;; <output-file>.sql - The actual SQL file generated via mysqldump.
+;; <output-file>.db  - The generated sqlite database.
+;; <output-file>.err - The output of the conversion process.
+
+;; mysql2sqlite is written and maintained by Brian Zwahr <echosa@gmail.com>
+
+;;; Code:
+
 (defgroup mysql2sqlite nil
   "Customizations for mysql2sqlite."
   :group 'external)
@@ -383,44 +410,4 @@ mysql2sqlite-get-table-defiition-bounds for it."
     
 (provide 'mysql2sqlite)
 
-;; Original script:
-
-;; #!/bin/bash
-;; if [ "x$1" == "x" ]; then
-;;   echo "Usage: $0 <dumpname>"
-;;   exit
-;; fi
-
-;; cat $1 |
-;; grep -v ' KEY "' |
-;; grep -v ' UNIQUE KEY "' |
-;; grep -v ' PRIMARY KEY ' |
-;; sed '/^SET/d' |
-;; sed 's/ unsigned / /g' |
-;; sed 's/ auto_increment/ primary key autoincrement/g' |
-;; sed 's/ smallint([0-9]*) / integer /g' |
-;; sed 's/ tinyint([0-9]*) / integer /g' |
-;; sed 's/ int([0-9]*) / integer /g' |
-;; sed 's/ character set [^ ]* / /g' |
-;; sed 's/ enum([^)]*) / varchar(255) /g' |
-;; sed 's/ on update [^,]*//g' |
-;; sed 's/\\r\\n/\\n/g' |
-;; sed 's/\\"/"/g' |
-;; perl -e 'local $/;$_=<>;s/,\n\)/\n\)/gs;print "begin;\n";print;print "commit;\n"' |
-;; perl -pe '
-;; if (/^(INSERT.+?)\(/) {
-;;   $a=$1;
-;;   s/\\'\''/'\'\''/g;
-;;   s/\\n/\n/g;
-;;   s/\),\(/\);\n$a\(/g;
-;; }
-;; ' > $1.sql
-;; cat $1.sql | sqlite3 $1.db > $1.err
-;; ERRORS=`cat $1.err | wc -l`
-;; if [ $ERRORS == 0 ]; then
-;;   echo "Conversion completed without error. Output file: $1.db"
-;;   rm $1.sql
-;;   rm $1.err
-;; else
-;;   echo "There were errors during conversion.  Please review $1.err and $1.sql for details."
-;; fi
+;;; mysql2sqlite.el ends here
