@@ -1,4 +1,4 @@
-;;; mysql2sqlite.el - Convert mysql databases into sqlite databases.
+;;; mysql2sqlite.el --- Convert mysql databases into sqlite databases.
 
 ;;; Commentary:
 
