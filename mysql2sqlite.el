@@ -2,14 +2,14 @@
 
 ;;; Commentary:
 
-;; mysql2sqlite is an emacs package for converting a mysql database into an sqlite
+;; mysql2sqlite is an Emacs package for converting a mysql database into an sqlite
 ;; database.
 
 ;; Installation:
 
 ;; The package can be installed with M-x package-list-packages (requires
-;; package.el, which is included for emacs 24 but availble for 23). The MELPA
-;; repository must be added to your packages setup first. Instructions can be found
+;; package.el, which is included for Emacs 24 but availble for 23). The MELPA
+;; repository must be added to your packages setup first.  Instructions can be found
 ;; at http://melpa.milkbox.net/
 
 ;; Alternatively, the source can be pulled direclty from github:
@@ -27,8 +27,8 @@
 
 ;; Usage
 
-;; Usage is as simple as running M-x mysql2sqlite. You will be prompted for the
-;; necessary values, with the customized defaults as default values. Running the
+;; Usage is as simple as running M-x mysql2sqlite.  You will be prompted for the
+;; necessary values, with the customized defaults as default values.  Running the
 ;; function will result in several files in the target directory:
 
 ;; <output-file>.sql - The actual SQL file generated via mysqldump.
@@ -44,40 +44,40 @@
   :group 'external)
 
 (defcustom mysql2sqlite-sqlite-executable "sqlite"
-  "sqlite executable to run."
+  "Sqlite executable to run."
   :group 'mysql2sqlite
   :type 'string)
 
 (defcustom mysql2sqlite-mysqldump-executable "mysqldump"
-  "mysqldump executable to run."
+  "Mysqldump executable to run."
   :group 'mysql2sqlite
   :type 'string)
 
 (defcustom mysql2sqlite-mysqldump-host "localhost"
-  "mysqldump default host."
+  "Mysqldump default host."
   :group 'mysql2sqlite
   :type 'string)
 
 (defcustom mysql2sqlite-mysqldump-user ""
-  "mysqldump default user."
+  "Mysqldump default user."
   :group 'mysql2sqlite
   :type 'string)
 
 (defcustom mysql2sqlite-mysqldump-database ""
-  "mysqldump default database."
+  "Mysqldump default database."
   :group 'mysql2sqlite
   :type 'string)
 
 (defun mysql2sqlite (directory)
-  "This function converts a mysql dump file into an sqlite database. The dump
-file should be generated with
+  "This function convert a mysql dump file into an sqlite database.
+The dump file should be generated with
 mysqldump -u root -p --compatible=ansi --skip-opt DATABASE > DUMPFILE
 
 Several files will be generated:
 - DUMPFILE.sql is the DUMPFILE after full conversion
 - DUMPFILE.db is the generated sqlite database
 - DUMPFILE.err is the output of the conversion
-"
+Argument DIRECTORY Directory where all output will be generated."
   (interactive "DTarget directory: ")
   (let* ((keep-inserts (y-or-n-p "Keep INSERT statements? "))
          (dumpfile (mysql2sqlite-get-mysqldump directory keep-inserts)))
@@ -109,7 +109,9 @@ Several files will be generated:
       (mysql2sqlite-save-and-convert dumpfile))))
 
 (defun mysql2sqlite-get-mysqldump (directory &optional keep-inserts)
-  "Retrieves a dump from mysql."
+  "Retrieves a dump from mysql.
+Argument DIRECTORY Directory where all output will be generated.
+Optional argument KEEP-INSERTS Whether or not data should be included in the dump."
   (let ((host (read-string "Host: " mysql2sqlite-mysqldump-host))
         (database (read-string "Database: " mysql2sqlite-mysqldump-database))
         (user (read-string "User: " mysql2sqlite-mysqldump-user))
@@ -121,7 +123,7 @@ Several files will be generated:
       (let* ((dumpfile (convert-standard-filename
                         (concat directory "/" database ".dump")))
              (cmd (concat mysql2sqlite-mysqldump-executable " -u" user
-                         " --password=" password " -h " host 
+                         " --password=" password " -h " host
                          (unless keep-inserts
                            " --no-data")
                          " --compatible=ansi --skip-opt " database
@@ -130,13 +132,13 @@ Several files will be generated:
         dumpfile))))
 
 (defun mysql2sqlite-cleanup-buffer ()
-  "Removes whitespace and blanklines."
+  "Remove whitespace and blanklines."
   (delete-trailing-whitespace)
   (delete-matching-lines "^$"))
 
 (defun mysql2sqlite-save-and-convert (dumpfile)
-  "This function writes the updated buffer to a .sql file, then creates the 
-sqlite database."
+  "Write the updated buffer to a .sql file and create the sqlite database.
+Argument DUMPFILE FIle containing the mysqldump output."
   (let* ((basefilename (concat (substring dumpfile 0 -5)))
          (sqlfile (concat basefilename ".sql"))
          (dbfile (concat basefilename ".db")))
@@ -147,7 +149,7 @@ sqlite database."
       (shell-command cmd))))
 
 (defun mysql2sqlite-remove-comments ()
-  "This function removes comments."
+  "Remove comments from the SQL dump."
     (save-excursion
       (goto-char (point-min))
       (delete-matching-lines "^--")
@@ -158,7 +160,9 @@ sqlite database."
         (insert ","))))
 
 (defun mysql2sqlite-convert-primary-keys ()
-  "This function converts primary keys for sqlite. Given:
+  "Convert primary keys for sqlite.
+
+Given:
 
 CREATE TABLE \"animalSpecies\" (
   \"pk\" int(11) NOT NULL,
@@ -166,7 +170,8 @@ CREATE TABLE \"animalSpecies\" (
   \"genus\" int(11) NOT NULL,
   PRIMARY KEY (\"pk\"),
   KEY \"animalGenusFk\" (\"genus\"),
-  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\") REFERENCES \"animalGenus\" (\"pk
+  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\")
+    REFERENCES \"animalGenus\" (\"pk
 \") ON DELETE NO ACTION ON UPDATE NO ACTION);
 
 The output will be:
@@ -176,7 +181,8 @@ CREATE TABLE \"animalSpecies\" (
   \"species\" text NOT NULL,
   \"genus\" int(11) NOT NULL,
   KEY \"animalGenusFk\" (\"genus\"),
-  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\") REFERENCES \"animalGenus\" (\"pk
+  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\")
+    REFERENCES \"animalGenus\" (\"pk
 \") ON DELETE NO ACTION ON UPDATE NO ACTION);"
   (save-excursion
     (goto-char (point-min))
@@ -201,14 +207,17 @@ CREATE TABLE \"animalSpecies\" (
       (replace-match "PRIMARY KEY AUTOINCREMENT" nil t))))
 
 (defun mysql2sqlite-remove-extra-keys ()
-  "This function removes any extra keys. Given:
+  "Remove extra keys from the dump.
+
+Given:
 
 CREATE TABLE \"animalSpecies\" (
   \"pk\" INTEGER PRIMARY KEY,
   \"species\" text NOT NULL,
   \"genus\" int(11) NOT NULL,
   KEY \"animalGenusFk\" (\"genus\"),
-  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\") REFERENCES \"animalGenus\" (\"pk
+  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\")
+    REFERENCES \"animalGenus\" (\"pk
 \") ON DELETE NO ACTION ON UPDATE NO ACTION);
 
 The output will be:
@@ -217,19 +226,19 @@ CREATE TABLE \"animalSpecies\" (
   \"pk\" INTEGER PRIMARY KEY,
   \"species\" text NOT NULL,
   \"genus\" int(11) NOT NULL,
-  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\") REFERENCES \"animalGenus\" (\"pk
+  CONSTRAINT \"animalGenusFk\" FOREIGN KEY (\"genus\")
+    REFERENCES \"animalGenus\" (\"pk
 \") ON DELETE NO ACTION ON UPDATE NO ACTION);
 
 This should be the equivalent of:
 
-grep -v ' KEY \"'
-"
+grep -v ' KEY \"'"
   (save-excursion
     (goto-char (point-min))
     (delete-matching-lines " KEY \"")))
 
 (defun mysql2sqlite-convert-types ()
-  "This function converts column type declarations.
+  "Convert column type declarations.
 
 This should be the eqivalent of:
 
@@ -238,8 +247,7 @@ sed 's/ smallint([0-9]*) / integer /g'
 sed 's/ tinyint([0-9]*) / integer /g'
 sed 's/ int([0-9]*) / integer /g'
 sed 's/ character set [^ ]* / /g'
-sed 's/ enum([^)]*) / varchar(255) /g'
-"
+sed 's/ enum([^)]*) / varchar(255) /g'"
   (save-excursion
     (let ((types '((" unsigned " . " ")
                    (" smallint([0-9]*) " . " INTEGER ")
@@ -288,47 +296,43 @@ sed 's/ enum([^)]*) / varchar(255) /g'
             (insert (concat "INTEGER REFERENCES " table "(" column ")" actions))))))))
 
 (defun mysql2sqlite-delete-sets ()
-  "This function deletes sets.
+  "This function deletes SET statements.
 
 This should be the equivalent of:
 
-sed '/^SET/d'
-"
+sed '/^SET/d'"
   (save-excursion
     (goto-char (point-min))
     (delete-matching-lines "^SET")))
 
 (defun mysql2sqlite-convert-newlines ()
-  "This function converts newlines.
+  "Convert newlines from \r\n to \n.
 
 This should be the equivalent of:
 
-sed 's/\\r\\n/\\n/g'
-"
+sed 's/\\r\\n/\\n/g'"
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "\\\\r\\\\n" nil t)
       (replace-match "\\\\n" nil nil))))
 
 (defun mysql2sqlite-convert-quotes ()
-  "This function converts quotes.
+  "Convert quotes from escaped to not escaped.
 
 This should be the equivalent of:
 
-sed 's/\\\"/\"/g'
-"
+sed 's/\\\"/\"/g'"
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "\\\\\"" nil t)
       (replace-match "\"" nil nil))))
 
 (defun mysql2sqlite-remove-trailing-commas ()
-  "This function removes trailing commas.
+  "Remove trailing commas.
 
 This should be the equivalent of:
 
-s/,\\n\\)/\\n\\)/gs
-"
+s/,\\n\\)/\\n\\)/gs"
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward ",\n)" nil t)
@@ -340,9 +344,8 @@ s/,\\n\\)/\\n\\)/gs
 
 This should be the equivalent of:
 
-print \"begin;\n\";print;print \"commit\n\";
-"
-  (save-excursion 
+print \"begin;\n\";print;print \"commit\n\";"
+  (save-excursion
     (goto-char (point-min))
     (insert "begin;")
     (newline)
@@ -352,7 +355,7 @@ print \"begin;\n\";print;print \"commit\n\";
     (newline)))
 
 (defun mysql2sqlite-convert-inserts ()
-  "This function converts insert statements.
+  "Convert INSERT statements to sqlite format.
 
 This should be the equivalent of:
 
@@ -362,8 +365,7 @@ if (/^(INSERT.+?)\(/) {
   s/\\'\''/'\'\''/g;
   s/\\n/\n/g;
   s/\),\(/\);\n$a\(/g;
-}
-"
+}"
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "^INSERT" nil t)
@@ -383,7 +385,7 @@ if (/^(INSERT.+?)\(/) {
       (forward-line)))))
 
 (defun mysql2sqlite-move-inserts-to-end ()
-  "This function moves all insert statements to the end of the script."
+  "Move all insert statements to the end of the script."
   (save-excursion
     (let ((end (buffer-end 1)))
       (goto-char (point-min))
@@ -397,8 +399,8 @@ if (/^(INSERT.+?)\(/) {
           (newline))))))
 
 (defun mysql2sqlite-get-table-definition-bounds ()
-  "This function returns the bounds of the current create table definition as a
-cons of (beginning . end)"
+  "Return the bounds of the current create table definition.
+The bounds are returned as a cons of (beginning . end)"
   (let (beg end)
     (save-excursion
       (beginning-of-line)
@@ -410,8 +412,8 @@ cons of (beginning . end)"
     (cons beg end)))
 
 (defun mysql2sqlite-next-table-definition ()
-  "This function moves point the next table definition and returns the result of
-mysql2sqlite-get-table-defiition-bounds for it."
+  "Move point to the next table definition and return its bounds.
+The bounds are the result of mysql2sqlite-get-table-defiition-bounds."
   (let ((current-line (line-number-at-pos)))
     (if (search-forward "CREATE TABLE" nil t)
         (if (equal (line-number-at-pos) current-line)
