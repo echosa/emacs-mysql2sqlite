@@ -10,7 +10,7 @@
 ;; The package can be installed with M-x package-list-packages (requires
 ;; package.el, which is included for Emacs 24 but availble for 23). The MELPA
 ;; repository must be added to your packages setup first.  Instructions can be found
-;; at http://melpa.milkbox.net/
+;; at https://melpa.org/
 
 ;; Alternatively, the source can be pulled direclty from github:
 ;; https://github.com/echosa/emacs-mysql2sqlite
