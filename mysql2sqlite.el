@@ -39,6 +39,8 @@
 
 ;;; Code:
 
+(require 'thingatpt)
+
 (defgroup mysql2sqlite nil
   "Customizations for mysql2sqlite."
   :group 'external)
